@@ -34,5 +34,6 @@ def test_login_with_email_variations(page: Page, transform, credentials):
     expect(login_button).to_be_enabled(timeout=10000)
     login_button.click()
 
-    expect(page.get_by_test_id("link-train")).to_be_visible()
+    #expect(page.get_by_test_id("link-train")).to_be_visible()
+    expect(page.get_by_test_id("nav-desktop-train")).to_be_visible()
     expect(page.get_by_test_id("login-email")).not_to_be_visible()
