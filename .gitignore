@@ -1,22 +1,8 @@
-# Python virtual environment
 .venv/
-venv/
-
-# Python cache
 __pycache__/
-*.pyc
-
-# pytest cache
 .pytest_cache/
-
-# PyCharm
-.idea/
-
-# Playwright artifacts
-test-results/
-playwright-report/
-
-# Local configuration and secrets
 .env
 .env.*
 !.env.example
+test-results/
+playwright-report/
