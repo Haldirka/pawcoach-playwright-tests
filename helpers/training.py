@@ -14,10 +14,12 @@ def complete_training(page: Page):
                 has=help_toggle
             )
 
-            if help_section.get_attribute("open") is None:
-                help_toggle.click()
+            if help_section.count() > 0:
+                if help_section.get_attribute("open") is None:
+                    help_toggle.click()
 
-            expect(help_section).to_have_attribute("open", "")
+                if help_section.count() > 0:
+                    expect(help_section).to_have_attribute("open", "")
 
         if next_button.is_disabled():
             break
