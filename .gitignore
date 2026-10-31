@@ -6,3 +6,6 @@ __pycache__/
 !.env.example
 test-results/
 playwright-report/
+# Allure generated files
+allure-results/
+allure-report/
