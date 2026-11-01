@@ -237,7 +237,35 @@ jobs:
                       output.write(
                           "### ✅ All executed tests passed\n"
                       )
+                  
+                  # Show detailed failure reasons in GitHub Actions Summary
+                  if failed:
+                      output.write("\n## Failure Details\n\n")
+                  
+                      for case in cases:
+                          failure = case.find("failure")
+                          error = case.find("error")
+                          problem = failure if failure is not None else error
+                  
+                          if problem is None:
+                              continue
+                  
+                          name = case.get("name", "Unknown")
+                          message = problem.get("message", "No error message")
+                          traceback = problem.text or message
+                  
+                          # Escape Markdown code fences inside traceback
+                          traceback = traceback.replace("```", "'''")
+                  
+                          output.write(
+                              f"<details>\n"
+                              f"<summary>❌ {safe(name)}</summary>\n\n"
+                              f"**Error:** {safe(message)}\n\n"
+                              f"```text\n{traceback[:12000]}\n```\n\n"
+                              f"</details>\n\n"
+                          )
 
+                  
                   output.write(
                       "\nThe full Allure HTML report is available "
                       "under the workflow's Artifacts section.\n"
