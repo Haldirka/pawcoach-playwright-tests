@@ -150,6 +150,101 @@ jobs:
             --alluredir=allure-results \
             --clean-alluredir
 
+      # Generate a summary directly on the GitHub Actions page
+      - name: Publish test summary
+        if: always()
+        run: |
+          python - <<'PY'
+          import os
+          import xml.etree.ElementTree as ET
+          from pathlib import Path
+
+          report = Path("pytest-report.xml")
+          summary = Path(os.environ["GITHUB_STEP_SUMMARY"])
+
+          def safe(text):
+              return str(text).replace("|", "\\|").replace("\n", " ")
+
+          with summary.open("a", encoding="utf-8") as output:
+              output.write("# PawCoach Playwright Test Results\n\n")
+
+              if not report.exists():
+                  output.write(
+                      "No JUnit test results were generated. "
+                      "Check the workflow logs.\n"
+                  )
+              else:
+                  root = ET.parse(report).getroot()
+                  cases = root.findall(".//testcase")
+
+                  passed = 0
+                  failed = 0
+                  skipped = 0
+                  details = []
+
+                  for case in cases:
+                      name = case.get("name", "Unknown")
+                      duration = float(case.get("time", "0"))
+
+                      failure = case.find("failure")
+                      error = case.find("error")
+                      skip = case.find("skipped")
+
+                      if failure is not None or error is not None:
+                          status = "❌ Failed"
+                          failed += 1
+                      elif skip is not None:
+                          status = "⏭️ Skipped"
+                          skipped += 1
+                      else:
+                          status = "✅ Passed"
+                          passed += 1
+
+                      details.append((name, status, duration))
+
+                  total = len(cases)
+
+                  output.write("## Overview\n\n")
+                  output.write("| Metric | Count |\n")
+                  output.write("|---|---:|\n")
+                  output.write(f"| Total | {total} |\n")
+                  output.write(f"| Passed | {passed} |\n")
+                  output.write(f"| Failed | {failed} |\n")
+                  output.write(f"| Skipped | {skipped} |\n\n")
+
+                  output.write("## Individual Tests\n\n")
+                  output.write("| Test | Status | Duration |\n")
+                  output.write("|---|---|---:|\n")
+
+                  for name, status, duration in details:
+                      output.write(
+                          f"| {safe(name)} | {status} | "
+                          f"{duration:.2f}s |\n"
+                      )
+
+                  output.write("\n")
+
+                  if failed:
+                      output.write(
+                          "### ❌ Some tests failed\n"
+                          "Review the logs and Allure artifacts.\n"
+                      )
+                  elif total == 0:
+                      output.write(
+                          "### ⚠️ No tests were collected\n"
+                      )
+                  else:
+                      output.write(
+                          "### ✅ All executed tests passed\n"
+                      )
+
+                  output.write(
+                      "\nThe full Allure HTML report is available "
+                      "under the workflow's Artifacts section.\n"
+                  )
+          PY
+
+
       # 12. Install Allure CLI
       - name: Install Allure CLI
         if: always()
