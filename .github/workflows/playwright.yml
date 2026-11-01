@@ -58,7 +58,7 @@ jobs:
       # 6. Install Playwright and Allure dependencies
       - name: Install Playwright dependencies
         run: |
-          python -m pip install pytest pytest-playwright python-dotenv allure-pytest
+          python -m pip install -r requirements-test.txt
           python -m playwright install --with-deps chromium
 
       # 7. Build React frontend
@@ -183,7 +183,7 @@ jobs:
                   details = []
 
                   for case in cases:
-                      name = case.get("name", "Unknown")
+                      name = f"{case.get('classname', '')}.{case.get('name', 'Unknown')}".lstrip(".")
                       duration = float(case.get("time", "0"))
 
                       failure = case.find("failure")
@@ -250,7 +250,7 @@ jobs:
                           if problem is None:
                               continue
                   
-                          name = case.get("name", "Unknown")
+                          name = f"{case.get('classname', '')}.{case.get('name', 'Unknown')}".lstrip(".")
                           message = problem.get("message", "No error message")
                           traceback = problem.text or message
                   

@@ -1,0 +1,35 @@
+[1mdiff --git a/tests/api/test_auth.py b/tests/api/test_auth.py[m
+[1mindex e69de29..bb3e5ee 100644[m
+[1m--- a/tests/api/test_auth.py[m
+[1m+++ b/tests/api/test_auth.py[m
+[36m@@ -0,0 +1,30 @@[m
+[32m+[m
+[32m+[m
+[32m+[m[32mdef test_login_with_valid_credentials([m
+[32m+[m[32m    playwright,[m
+[32m+[m[32m    credentials,[m
+[32m+[m[32m    base_url[m
+[32m+[m[32m):[m
+[32m+[m[32m    email, password = credentials[m
+[32m+[m
+[32m+[m[32m    request = playwright.request.new_context(base_url=base_url)[m
+[32m+[m
+[32m+[m[32m    try:[m
+[32m+[m[32m        response = request.post([m
+[32m+[m[32m            "/api/auth/login",[m
+[32m+[m[32m            data={[m
+[32m+[m[32m                "email": email,[m
+[32m+[m[32m                "password": password,[m
+[32m+[m[32m            },[m
+[32m+[m[32m        )[m
+[32m+[m
+[32m+[m[32m        assert response.status == 200, ([m
+[32m+[m[32m            f"Expected 200, got {response.status}. "[m
+[32m+[m[32m            f"Response: {response.text()}"[m
+[32m+[m[32m        )[m
+[32m+[m
+[32m+[m[32m        body = response.json()[m
+[32m+[m[32m        assert isinstance(body, dict)[m
+[32m+[m
+[32m+[m[32m    finally:[m
+[32m+[m[32m        request.dispose()[m

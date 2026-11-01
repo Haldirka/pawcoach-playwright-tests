@@ -1,7 +1,6 @@
 
 import uuid
 
-from playwright.sync_api import expect
 
 
 def dog_payload():
@@ -59,10 +58,11 @@ def test_update_dog(api_user):
         data=update_data,
     )
 
-    assert response.status in (200, 204), (
+    assert response.status == 200, (
         f"Dog update failed: {response.status}. "
         f"Response: {response.text()}"
     )
+    assert response.json()["id"] == dog["id"]
 
     updated = next(
         item
@@ -112,11 +112,12 @@ def test_unauthenticated_dog_access(playwright, base_url):
 
 def test_invalid_dog_creation(api_user):
     before = get_dogs(api_user)
+    invalid_name = ""
 
     response = api_user.post(
         "/api/dogs",
         data={
-            "name": "",
+            "name": invalid_name,
             "breed": "Labrador",
             "age_group": "Adult",
             "training_level": "Brand new",
@@ -133,6 +134,9 @@ def test_invalid_dog_creation(api_user):
     assert len(after) == len(before), (
         "Invalid request unexpectedly created a dog"
     )
+    assert {dog["id"] for dog in after} == {dog["id"] for dog in before}, (
+        "Invalid creation changed the account's dog IDs"
+    )
 
 
 def test_duplicate_dog_creation(api_user):
@@ -141,7 +145,9 @@ def test_duplicate_dog_creation(api_user):
     first = api_user.post("/api/dogs", data=payload)
     second = api_user.post("/api/dogs", data=payload)
 
-    assert first.status in (200, 201)
+    assert first.status == 201, (
+        f"Initial dog creation failed: {first.status}, {first.text()}"
+    )
 
     # Depending on the creation_key contract, the second
     # request may return the existing dog or a conflict.
@@ -158,3 +164,10 @@ def test_duplicate_dog_creation(api_user):
     assert len(matching_dogs) == 1, (
         "Duplicate request created multiple dogs"
     )
+    assert matching_dogs[0]["id"] == first.json()["id"], (
+        "Repeated creation key did not preserve the original dog ID"
+    )
+    if second.status in (200, 201):
+        assert second.json()["id"] == first.json()["id"], (
+            "Duplicate request returned a different dog ID"
+        )

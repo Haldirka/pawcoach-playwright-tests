@@ -9,7 +9,7 @@ def complete_training(page: Page):
     next_button = page.get_by_test_id("lesson-next")
     ready_button = page.get_by_test_id("practice-start")
 
-    while True:
+    for step_index in range(100):
         # Check whether the current step offers help.
         if help_toggle.is_visible():
             try:
@@ -28,6 +28,8 @@ def complete_training(page: Page):
             if next_button.is_disabled():
                 break
             raise
+    else:
+        raise AssertionError("Training lesson exceeded 100 steps without finishing")
 
     expect(next_button).to_be_disabled()
     expect(ready_button).to_be_enabled()
@@ -54,7 +56,10 @@ def complete_training(page: Page):
     engagement_slider.nth(0).focus()
     engagement_slider.nth(0).press("ArrowRight")
 
-    page.get_by_test_id("feedback-submit").click()
+    submit = page.get_by_test_id("feedback-submit")
+    expect(submit).to_be_enabled()
+    submit.click()
+    expect(page.get_by_test_id("link-home")).to_be_visible()
 
     # Return home.
     page.get_by_test_id("link-home").click()

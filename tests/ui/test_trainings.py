@@ -1,10 +1,6 @@
-from dotenv import load_dotenv
 from helpers.training import complete_training
-from playwright.sync_api import Page, expect
-import uuid
+from playwright.sync_api import Page
 import pytest
-import time
-load_dotenv()
 
 @pytest.mark.parametrize(
     "training_name",
@@ -18,8 +14,7 @@ load_dotenv()
     ],
 )
 
-#def test_tranings(page: Page, login, training_name):
-def test_tranings(page: Page, user_with_dog, training_name):
+def test_trainings(page: Page, user_with_dog, training_name):
     page.get_by_test_id("nav-desktop-train").click()
     page.get_by_test_id(training_name).click()
     complete_training(page)

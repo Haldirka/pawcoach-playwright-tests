@@ -1,7 +1,7 @@
-from dotenv import load_dotenv
 from playwright.sync_api import Page, expect
 import pytest
-load_dotenv()
+
+from helpers.checks import assert_account
 
 
 def test_login_fields_are_visible(page: Page):
@@ -37,3 +37,4 @@ def test_login_with_email_variations(page: Page, transform, credentials):
     #expect(page.get_by_test_id("link-train")).to_be_visible()
     expect(page.get_by_test_id("nav-desktop-train")).to_be_visible()
     expect(page.get_by_test_id("login-email")).not_to_be_visible()
+    assert_account(page, {"email": email_input}, "After email variation login")

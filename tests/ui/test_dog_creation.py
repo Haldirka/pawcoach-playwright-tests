@@ -1,9 +1,6 @@
-from dotenv import load_dotenv
 from helpers.dogs import create_dog
 from playwright.sync_api import Page, expect
 import uuid
-import pytest
-load_dotenv()
 
 def test_dog_creation_with_new_user(page: Page, register_user):
     create_dog(page, "Buddy")

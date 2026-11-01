@@ -1,8 +1,6 @@
-from dotenv import load_dotenv
 from playwright.sync_api import Page, expect
-import pytest
-import uuid
-load_dotenv()
+
+from helpers.checks import assert_account
 
 def test_registration(page: Page, new_user):
     page.goto("/")
@@ -19,4 +17,4 @@ def test_registration(page: Page, new_user):
 
     expect(page.get_by_test_id("dog-name")).to_be_visible()
     expect(page.get_by_test_id("login-email")).not_to_be_visible()
-
+    assert_account(page, new_user, "After UI registration")
