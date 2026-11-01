@@ -1,4 +1,4 @@
-
+import pytest
 import uuid
 
 from playwright.sync_api import Playwright
@@ -155,3 +155,119 @@ def test_cross_account_dog_access(
     finally:
         user_a.dispose()
         user_b.dispose()
+
+def register(request, email, password, confirm_password):
+    return request.post(
+        "/api/auth/register",
+        data={
+            "email": email,
+            "password": password,
+            "confirm_password": confirm_password,
+            "language": "en",
+        },
+    )
+
+
+def test_registration_with_valid_credentials(
+    playwright: Playwright,
+    base_url,
+):
+    request = playwright.request.new_context(base_url=base_url)
+
+    try:
+        email = f"api_register_{uuid.uuid4().hex}@example.com"
+        password = "SecurePassword123!"
+
+        response = register(
+            request,
+            email,
+            password,
+            password,
+        )
+
+        assert response.status == 201, (
+            f"Expected 201, got {response.status}"
+        )
+
+        # Verify the new account can log in.
+        login_response = request.post(
+            "/api/auth/login",
+            data={
+                "email": email,
+                "password": password,
+                "language": "en",
+            },
+        )
+
+        assert login_response.status == 200
+
+        user = login_response.json()
+
+        assert user["email"].lower() == email.lower()
+        assert "id" in user
+
+    finally:
+        request.dispose()
+
+
+@pytest.mark.parametrize(
+    "scenario",
+    [
+        "duplicate_email",
+        "password_mismatch",
+        "invalid_email",
+        "missing_email",
+        "missing_password",
+    ],
+)
+def test_registration_with_invalid_credentials(
+    playwright: Playwright,
+    base_url,
+    scenario,
+):
+    request = playwright.request.new_context(base_url=base_url)
+
+    try:
+        email = f"api_register_{uuid.uuid4().hex}@example.com"
+        password = "SecurePassword123!"
+
+        if scenario == "duplicate_email":
+            first_response = register(
+                request, email, password, password
+            )
+            assert first_response.status == 201
+
+            response = register(
+                request, email, password, password
+            )
+
+        elif scenario == "password_mismatch":
+            response = register(
+                request, email, password, "DifferentPassword123!"
+            )
+
+        elif scenario == "invalid_email":
+            response = register(
+                request, "invalid-email", password, password
+            )
+
+        elif scenario == "missing_email":
+            response = register(
+                request, "", password, password
+            )
+
+        else:
+            response = register(
+                request, email, "", ""
+            )
+
+        assert response.status in (400, 409, 422), (
+            f"Scenario '{scenario}' unexpectedly returned "
+            f"HTTP {response.status}"
+        )
+
+        body = response.json()
+        assert "detail" in body
+
+    finally:
+        request.dispose()
